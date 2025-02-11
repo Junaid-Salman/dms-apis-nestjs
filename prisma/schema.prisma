@@ -1,0 +1,62 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// prisma/schema.prisma
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  // uncomment next line if you use Prisma <5.10
+  directUrl = env("DATABASE_URL_UNPOOLED")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  role      Role
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Customer {
+  id            Int       @id @default(autoincrement())
+  name          String
+  phoneNumber   String    @unique
+  soughtVehicle String?
+  dealType      DealType?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  deal Deal? @relation("CustomerDeal") // Only reference relation name, do not set fields here
+}
+
+model Deal {
+  id            Int      @id @default(autoincrement())
+  soughtVehicle String
+  dealType      DealType
+  dealNo        String   @default(uuid())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  customer   Customer @relation("CustomerDeal", fields: [customerId], references: [id], onDelete: Cascade) // Define relation fields here
+  customerId Int      @unique // Ensures one Deal per Customer
+}
+
+enum Role {
+  RECEPTIONIST
+  SALESPERSON
+  SALESMANAGER
+}
+
+enum DealType {
+  NEW
+  PO
+}
